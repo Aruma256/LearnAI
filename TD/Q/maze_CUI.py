@@ -14,11 +14,12 @@ def main():
         {'.':-1,
          'O':-50,
          'G':100})
-    Q = np.random.rand(*maze.maze_size, 4) / 1
+    Q = np.random.rand(*maze.maze_size, 4)
     gamma = 0.9
+    eps = 0.05
     #
     def choice_action(x, y):
-        if random.random() < 0.05:
+        if random.random() < eps:
             return random.choice(range(4))
         else:
             return np.argmax(Q[x, y])
