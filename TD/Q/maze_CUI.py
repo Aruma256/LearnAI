@@ -6,9 +6,9 @@ def main():
     maze = Maze(
         '''
         ########
-        #.#...G#
-        #S..#.O#
-        #......#
+        #S#...G#
+        #...#..#
+        #.O...O#
         ########
         ''',
         {'.':-1,
@@ -32,6 +32,7 @@ def main():
         x, y = maze.reset()
         maze.print_with_agent(x, y)
         is_end = False
+        step_count = 0
         while not is_end:
             sleep(0.2)
             action = choice_action(x, y)
@@ -39,8 +40,9 @@ def main():
             update_Q(x, y, action, reward, is_end, nx, ny)
             x, y = nx, ny
             maze.print_with_agent(x, y)
-        print('goal')
-        sleep(0.8)
+            step_count += 1
+        print('goal ({} steps)'.format(step_count))
+        sleep(1)
 
 
 class Maze:
