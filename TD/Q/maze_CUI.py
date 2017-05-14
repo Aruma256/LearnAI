@@ -1,15 +1,46 @@
+import numpy as np
+import random
+from time import sleep
+
 def main():
     maze = Maze(
         '''
-        #####
-        #O.G#
-        #...#
-        #S..#
-        #####
+        ########
+        #.#...G#
+        #S..#.O#
+        #......#
+        ########
         ''',
         {'.':-1,
          'O':-50,
          'G':100})
+    Q = np.random.rand(*maze.maze_size, 4) / 1
+    gamma = 0.9
+    #
+    def choice_action(x, y):
+        if random.random() < 0.05:
+            return random.choice(range(4))
+        else:
+            return np.argmax(Q[x, y])
+    def update_Q(x, y, action, reward, is_end, nx, ny):
+        if is_end:
+            Q[x, y, action] = reward
+        else:
+            Q[x, y, action] = reward + gamma * np.max(Q[nx, ny])
+    #
+    for episode in range(20):
+        x, y = maze.reset()
+        maze.print_with_agent(x, y)
+        is_end = False
+        while not is_end:
+            sleep(0.2)
+            action = choice_action(x, y)
+            nx, ny, reward, is_end = maze.action(x, y, action)
+            update_Q(x, y, action, reward, is_end, nx, ny)
+            x, y = nx, ny
+            maze.print_with_agent(x, y)
+        print('goal')
+        sleep(0.8)
 
 
 class Maze:
@@ -23,7 +54,13 @@ class Maze:
             return self._reward_dict[block]
         else:
             return 0
-    def move(self, x, y, direction):
+    def reset(self):
+        for x in range(len(self.maze_map)):
+            for y in range(len(self.maze_map[x])):
+                if self.maze_map[x][y] == 'S':
+                    return x, y
+        raise RuntimeError('S not found')
+    def action(self, x, y, direction):
         # basic move
         if direction == 0:
             nx, ny = x, y - 1
@@ -34,12 +71,21 @@ class Maze:
         elif direction == 3:
             nx, ny = x - 1, y
         # exceptional move
-        if self._get_material(nx, ny) == '#':
+        penalty = 0
+        if self.maze_map[nx][ny] == '#':
             nx, ny = x, y
+            penalty = -10
         # return pos, reward, end_flag
-        reward = self._get_reward(nx, ny)
-        is_end = (self._get_material(nx, ny) in ('O', 'G'))
+        reward = self._get_reward(nx, ny) + penalty
+        is_end = (self.maze_map[nx][ny] in ('O', 'G'))
         return nx, ny, reward, is_end
+    def print_with_agent(self, x, y):
+        for i in range(len(self.maze_map)):
+            if x == i:
+                print(self.maze_map[i][0:y], 'P', self.maze_map[i][y + 1:], sep='')
+            else:
+                print(self.maze_map[i])
+        print()
 
 
 if __name__ == '__main__':
